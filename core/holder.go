@@ -56,7 +56,7 @@ func (b *BaseItemHolder) update() {
 	log.Printf("Star %s update\n", b.Name())
 	fetch, err := b.Fetch()
 	if err != nil || fetch == nil {
-		log.Printf("Fetcher=>%s fetch data error, error=>%v", b.Name(), err)
+		log.Printf("[error] Fetcher=>%s fetch data error, error=>%v", b.Name(), err)
 		return
 	}
 	b.locker.Lock()

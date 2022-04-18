@@ -159,7 +159,7 @@ func (c *ConanFetcher) fulfillLinInfoDetail(libInfo *core.LibInfo, user, channel
 		revisions,
 	)
 	if err != nil || len(revisions.Revisions) <= 0 {
-		log.Printf("Fethcer=>%s fetch into libInfo error=>%v or revision empty", c.Name(), err)
+		log.Printf("[error] Fethcer=>%s fetch into libInfo error=>%v or revision empty", c.Name(), err)
 		return
 	}
 	// 3. 获取dependencies, 参数：第一个revision
@@ -212,7 +212,7 @@ func (c *ConanFetcher) libInfoDetails(preInfo *ConanPackage) []*core.LibInfo {
 		detail,
 	)
 	if err != nil {
-		log.Printf("Fethcer=>%s fetch into libInfo error=>%v", c.Name(), err)
+		log.Printf("[error] Fethcer=>%s fetch into libInfo error=>%v", c.Name(), err)
 		return nil
 	}
 	// 2. 获取所有version的有关信息

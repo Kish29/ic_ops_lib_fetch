@@ -74,7 +74,7 @@ func (d *BaseDatabaseUpdater) UpdateIntoDB() {
 			defer wg.Done()
 			create := d.dbConn.Create(&needInsert)
 			if create.Error != nil {
-				log.Printf("create error, error=>%v", create.Error)
+				log.Printf("[error] create error, error=>%v", create.Error)
 			}
 		}()
 	}
@@ -84,7 +84,7 @@ func (d *BaseDatabaseUpdater) UpdateIntoDB() {
 			defer wg.Done()
 			save := d.dbConn.Save(&needUpdate)
 			if save.Error != nil {
-				log.Printf("update error, error=>%v", save.Error)
+				log.Printf("[error] update error, error=>%v", save.Error)
 			}
 		}()
 	}
@@ -119,7 +119,7 @@ func libInfoConvert2DbBean(info *core.LibInfo) *TBsLibInfo {
 	if len(info.Dependencies) > 0 {
 		jsonM, err = json.Marshal(info.Dependencies)
 		if err != nil {
-			log.Printf("json marshal lib=>%s Dependencies error, error=>%v", info.Name, err)
+			log.Printf("[error] json marshal lib=>%s Dependencies error, error=>%v", info.Name, err)
 		} else {
 			dbBean.Dependencies = util.Bytes2Str(jsonM)
 		}
@@ -128,7 +128,7 @@ func libInfoConvert2DbBean(info *core.LibInfo) *TBsLibInfo {
 	if len(info.Contributors) > 0 {
 		jsonM, err = json.Marshal(info.Contributors)
 		if err != nil {
-			log.Printf("json marshal lib=>%s Contributors error, error=>%v", info.Name, err)
+			log.Printf("[error] json marshal lib=>%s Contributors error, error=>%v", info.Name, err)
 		} else {
 			dbBean.Contributors = util.Bytes2Str(jsonM)
 		}
