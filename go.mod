@@ -14,8 +14,11 @@ require (
 )
 
 require (
+	github.com/antchfx/htmlquery v1.2.4 // indirect
+	github.com/antchfx/xpath v1.2.0 // indirect
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/gookit/color v1.2.5 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -25,6 +28,7 @@ require (
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
 	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/eapache/queue.v1 v1.1.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )

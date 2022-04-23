@@ -121,7 +121,7 @@ func (g *GithubDownloader) DownloadAllVersions(url string) error {
 	defaultHeaderAttr := map[string]string{
 		`Authorization`: token,
 	}
-	err := util.HttpGet2Json(gitClient, tagUrl, nil, defaultHeaderAttr, &tagInfo)
+	err := util.HttpGETToJson(gitClient, tagUrl, nil, defaultHeaderAttr, &tagInfo)
 	if err != nil {
 		return err
 	}

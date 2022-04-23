@@ -58,7 +58,7 @@ func (v *VcpkgFetcher) Fetch() (info []*core.LibInfo, err error) {
 		util.HttpHeadKeyUserAgent: util.RandomFakeAgent(),
 	}
 	resp := &VcpkgAllPackageResp{}
-	err = util.HttpGet2Json(
+	err = util.HttpGETToJson(
 		conanClient,
 		webUrlVcpkg+allPackagesPathVcpkg,
 		nil,

@@ -86,7 +86,7 @@ func (c *ConanFetcher) Fetch() ([]*core.LibInfo, error) {
 		util.HttpHeadKeyUserAgent: util.RandomFakeAgent(),
 	}
 	resp := &ConanAllPackagesResp{}
-	err := util.HttpGet2Json(
+	err := util.HttpGETToJson(
 		conanClient,
 		webUrlConan+allPackagesPathConan,
 		nil,
@@ -151,7 +151,7 @@ func (c *ConanFetcher) fulfillLinInfoDetail(libInfo *core.LibInfo, user, channel
 	// 2. 获取revision，参数: 最新版本
 	revisions := &ConanRevisionsResp{}
 	param["version"] = libInfo.VerDetail.Ver
-	err := util.HttpGet2Json(
+	err := util.HttpGETToJson(
 		conanClient,
 		webUrlConan+packageRevisionPathConan,
 		param,
@@ -165,7 +165,7 @@ func (c *ConanFetcher) fulfillLinInfoDetail(libInfo *core.LibInfo, user, channel
 	// 3. 获取dependencies, 参数：第一个revision
 	param["revision"] = revisions.Revisions[0]
 	dependencies := &ConanDependenciesResp{}
-	err = util.HttpGet2Json(
+	err = util.HttpGETToJson(
 		conanClient,
 		webUrlConan+packageDependenciesPathConan,
 		param,
@@ -204,7 +204,7 @@ func (c *ConanFetcher) libInfoDetails(preInfo *ConanPackage) []*core.LibInfo {
 	}
 	// 1. 获取detail，得到所有的version
 	detail := &ConanPackageDetailResp{}
-	err := util.HttpGet2Json(
+	err := util.HttpGETToJson(
 		conanClient,
 		webUrlConan+packageDetailPathConan,
 		param,
