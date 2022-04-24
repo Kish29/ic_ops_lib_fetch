@@ -52,15 +52,18 @@ func HttpGETNode(url string) *html.Node {
 	req.Header.Set("User-Agent", RandomFakeAgent())
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal("Http get err:", err)
+		log.Printf("[error] Http get err=>%v", err)
+		return nil
 	}
 	if resp.StatusCode != 200 {
-		log.Fatal("Http status code:", resp.StatusCode)
+		log.Printf("[error] Http status code=>%v", resp.StatusCode)
+		return nil
 	}
 	defer resp.Body.Close()
 	doc, err := htmlquery.Parse(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("[error] parse error, err=>%v", err)
+		return nil
 	}
 	return doc
 }
