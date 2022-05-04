@@ -170,12 +170,16 @@ func GetRepoDetail(owner, repo string) *GitDetail {
 		return nil
 	}
 	detail := &GitDetail{
-		Name:    detailResp.Name,
-		Owner:   detailResp.Owner.Login,
-		License: detailResp.License.SpdxId,
-		Star:    detailResp.StargazersCount,
-		Watch:   detailResp.WatchersCount,
-		Fork:    detailResp.ForksCount,
+		Name:  detailResp.Name,
+		Star:  detailResp.StargazersCount,
+		Watch: detailResp.WatchersCount,
+		Fork:  detailResp.ForksCount,
+	}
+	if detailResp.Owner != nil {
+		detail.Owner = detailResp.Owner.Login
+	}
+	if detailResp.License != nil {
+		detail.License = detailResp.License.SpdxId
 	}
 	// 获取contributors
 	contributors := []*GitContributorResp{}

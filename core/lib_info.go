@@ -28,5 +28,9 @@ type LibInfo struct {
 }
 
 func (l *LibInfo) Unique() string {
-	return fmt.Sprintf("%s::%s", l.Name, l.VerDetail.Ver)
+	if l.VerDetail != nil {
+		return fmt.Sprintf("%s::%s", l.Name, l.VerDetail.Ver)
+	} else {
+		return fmt.Sprintf("%s::-", l.Name)
+	}
 }

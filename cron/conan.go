@@ -75,8 +75,8 @@ type ConanFetcher struct {
 
 func NewConanFetcher() *ConanFetcher {
 	fetcher := &ConanFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}}
-	fetcher.workers = pool.New(64)
-	fetcher.workers2 = pool.New(64)
+	fetcher.workers = pool.New(128)
+	fetcher.workers2 = pool.New(128)
 	return fetcher
 }
 

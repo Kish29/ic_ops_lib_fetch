@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Kish29/ic_ops_lib_fetch/core"
 	"github.com/Kish29/ic_ops_lib_fetch/integrate"
+	"github.com/Kish29/ic_ops_lib_fetch/pool"
 	"github.com/Kish29/ic_ops_lib_fetch/util"
 	"gorm.io/gorm"
 	"log"
@@ -18,6 +19,8 @@ const tableName = `t_bs_lib_info`
 type BaseDatabaseUpdater struct {
 	integrator integrate.Integrator
 	dbConn     *gorm.DB
+	insertPool *pool.WorkPool
+	updatePool *pool.WorkPool
 }
 
 func (d *BaseDatabaseUpdater) MustTableExit() {
@@ -34,7 +37,7 @@ func NewBaseDatabaseUpdater(integrator integrate.Integrator, dbConn *gorm.DB) *B
 	if integrator == nil || dbConn == nil {
 		panic("integrator or dbConn is nil")
 	}
-	return &BaseDatabaseUpdater{integrator: integrator, dbConn: dbConn}
+	return &BaseDatabaseUpdater{integrator: integrator, dbConn: dbConn, insertPool: pool.New(128), updatePool: pool.New(128)}
 }
 
 func (d *BaseDatabaseUpdater) UpdateIntoDB() {
@@ -55,7 +58,12 @@ func (d *BaseDatabaseUpdater) UpdateIntoDB() {
 		// 构建数据库模型
 		dbBean := libInfoConvert2DbBean(item)
 		var info = TBsLibInfo{}
-		first := d.dbConn.Where("name=? and version=?", item.Name, item.VerDetail.Ver).First(&info)
+		var first *gorm.DB
+		if item.VerDetail != nil {
+			first = d.dbConn.Where("name=? and version=?", item.Name, item.VerDetail.Ver).First(&info)
+		} else {
+			first = d.dbConn.Where("name=?", item.Name).First(&info)
+		}
 		// 如果没有找到该lib的记录
 		if first.Error != nil && first.Error == gorm.ErrRecordNotFound {
 			// 插入
@@ -68,25 +76,41 @@ func (d *BaseDatabaseUpdater) UpdateIntoDB() {
 	}
 	// 插入与更新
 	wg := sync.WaitGroup{}
-	if len(needInsert) > 0 {
+	for _, info := range needInsert {
+		if info == nil {
+			continue
+		}
 		wg.Add(1)
-		go func() { // 插入
-			defer wg.Done()
-			create := d.dbConn.Create(&needInsert)
-			if create.Error != nil {
-				log.Printf("[error] create error, error=>%v", create.Error)
-			}
-		}()
+		d.insertPool.Do(&pool.TaskHandler{
+			Fn: func(i interface{}) error {
+				insert := i.(*TBsLibInfo)
+				create := d.dbConn.Model(&TBsLibInfo{}).Create(insert)
+				if create.Error != nil {
+					log.Printf("[error] create error, error=>%v", create.Error)
+				}
+				return nil
+			},
+			Param: info,
+		})
 	}
-	if len(needUpdate) > 0 {
+	for _, info := range needUpdate {
+		if info == nil {
+			continue
+		}
 		wg.Add(1)
-		go func() { // 更新
-			defer wg.Done()
-			save := d.dbConn.Save(&needUpdate)
-			if save.Error != nil {
-				log.Printf("[error] update error, error=>%v", save.Error)
-			}
-		}()
+		d.updatePool.Do(&pool.TaskHandler{
+			Fn: func(i interface{}) error {
+				defer wg.Done()
+
+				update := i.(*TBsLibInfo)
+				save := d.dbConn.Model(&TBsLibInfo{}).Updates(update)
+				if save.Error != nil {
+					log.Printf("[error] update error, error=>%v", save.Error)
+				}
+				return nil
+			},
+			Param: info,
+		})
 	}
 	wg.Wait()
 	log.Printf("End database update, cost=>%v", time.Since(start))
