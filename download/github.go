@@ -129,6 +129,7 @@ func (g *GithubDownloader) DownloadAllVersions(url string) error {
 	targetDirArg := fmt.Sprintf("-P %s", repo)
 	for _, info := range tagInfo {
 		// 执行wget
+		// TODO: 检查是否已经下载
 		zipUrl := fmt.Sprintf(apiRepoZip, owner, repo, info.Name)
 		g.dPool.Do(&pool.TaskHandler{
 			Fn: func(u interface{}) error {

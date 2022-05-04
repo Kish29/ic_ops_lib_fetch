@@ -6,18 +6,21 @@ import (
 	"github.com/Kish29/ic_ops_lib_fetch/pool"
 	"github.com/Kish29/ic_ops_lib_fetch/util"
 	"github.com/antchfx/htmlquery"
+	"github.com/gookit/goutil/mathutil"
 	"strings"
 	"sync"
 	"testing"
 )
 
 type QPMPackage struct {
-	Name     string
-	Url      string
-	Desc     string
-	Versions []string
-	License  string
-	Author   string
+	Name          string
+	QPMDetailUrl  string
+	Desc          string
+	Versions      []string
+	License       string
+	Author        string
+	GitHomepage   string
+	DownloadCount int
 }
 
 func ParseQPM(url string) []*QPMPackage {
@@ -31,7 +34,7 @@ func ParseQPM(url string) []*QPMPackage {
 		}
 		pkg := &QPMPackage{}
 		if pkgUrl := htmlquery.FindOne(pkgInfo, `/@href`); pkgUrl != nil {
-			pkg.Url = htmlquery.InnerText(pkgUrl)
+			pkg.QPMDetailUrl = htmlquery.InnerText(pkgUrl)
 		}
 		if pkgName := htmlquery.FindOne(pkgInfo, `/strong/text()`); pkgName != nil {
 			pkg.Name = pkgName.Data
@@ -76,7 +79,7 @@ func Test_ParseVersion(t *testing.T) {
 	}
 }
 
-func ParseQPMVersions(qpmPackages []*QPMPackage) {
+func ParseQPMDetail(qpmPackages []*QPMPackage) {
 	if len(qpmPackages) <= 0 {
 		return
 	}
@@ -98,23 +101,42 @@ func ParseQPMVersions(qpmPackages []*QPMPackage) {
 				if doc == nil {
 					return nil
 				}
-				verList := htmlquery.Find(doc, `//a[@class='collection-item']`)
+				// 获取所有的版本号
+				verList := htmlquery.Find(doc, fmt.Sprintf(`//a[@class='%s']`, cron.QPMVerTag))
 				if verList == nil {
 					return nil
 				}
 				if len(verList) <= 0 {
 					return nil
 				}
+				// 去重
 				record := make(map[string]bool)
 				for _, ver := range pkg.Versions {
 					record[ver] = true
 				}
+				// 添加所有的版本号
 				for _, ver := range verList {
 					v := htmlquery.FindOne(ver, `/text()`)
-					if v != nil && !record[v.Data] {
+					if v != nil && record[v.Data] {
 						continue
 					}
 					pkg.Versions = append(pkg.Versions, v.Data)
+				}
+				// 获取githubHomepage
+				gitPage := htmlquery.FindOne(doc, `//a[@class='collection-item']`)
+				if gitPage != nil {
+					page := htmlquery.InnerText(htmlquery.FindOne(gitPage, `/@href`))
+					index := strings.Index(page, `?`)
+					if index != -1 {
+						pkg.GitHomepage = page[:index]
+					} else {
+						pkg.GitHomepage = page
+					}
+				}
+				// 解析下载总次数
+				one := htmlquery.FindOne(doc, `//td[@id='total_stat']/text()`)
+				if one != nil {
+					pkg.DownloadCount = mathutil.MustInt(one.Data)
 				}
 				return nil
 			},
@@ -126,7 +148,7 @@ func ParseQPMVersions(qpmPackages []*QPMPackage) {
 
 func Test_html_query(t *testing.T) {
 	qpmPackages := ParseQPM(cron.QPMWebUrl + cron.QPMPackagesUrl)
-	ParseQPMVersions(qpmPackages)
+	ParseQPMDetail(qpmPackages)
 	for _, qpmPackage := range qpmPackages {
 		fmt.Printf("%v\n", qpmPackage)
 	}
