@@ -3,6 +3,7 @@ package download
 import (
 	"errors"
 	"fmt"
+	"github.com/Kish29/ic_ops_lib_fetch/core"
 	"github.com/Kish29/ic_ops_lib_fetch/db"
 	"github.com/Kish29/ic_ops_lib_fetch/pool"
 	"github.com/Kish29/ic_ops_lib_fetch/util"
@@ -39,7 +40,6 @@ var (
 )
 
 type GithubDownloader struct {
-	dPool    *pool.WorkPool
 	callback func(url string, succ bool)
 }
 
@@ -131,7 +131,7 @@ func (g *GithubDownloader) DownloadAllVersions(url string) error {
 		// 执行wget
 		// TODO: 检查是否已经下载
 		zipUrl := fmt.Sprintf(apiRepoZip, owner, repo, info.Name)
-		g.dPool.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(u interface{}) error {
 				dUrl := u.(string)
 				log.Printf("Start downloadAllVersions souce code for=>%v", dUrl)
@@ -157,7 +157,7 @@ func (g *GithubDownloader) DownloadToWait(dir, url string) error {
 	}
 	url = g.buildGitUrl(url)
 	// 执行git clone
-	g.dPool.DoWait(&pool.TaskHandler{
+	core.GlobalPool.DoWait(&pool.TaskHandler{
 		Fn: func(u interface{}) error {
 			dUrl := u.(string)
 			// enter dir
@@ -191,7 +191,7 @@ func (g *GithubDownloader) DownloadTo(dir, url string) error {
 	}
 	url = g.buildGitUrl(url)
 	// 执行git clone
-	g.dPool.Do(&pool.TaskHandler{
+	core.GlobalPool.Do(&pool.TaskHandler{
 		Fn: func(u interface{}) error {
 			dUrl := u.(string)
 			// enter dir
@@ -225,5 +225,5 @@ func InitGitDownloader(callback func(url string, succ bool)) *GithubDownloader {
 	if err != nil {
 		panic(fmt.Errorf("[fatal] git not installed, error=>%v", err))
 	}
-	return &GithubDownloader{dPool: pool.New(2048), callback: callback}
+	return &GithubDownloader{callback: callback}
 }

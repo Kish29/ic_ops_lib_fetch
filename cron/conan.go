@@ -69,14 +69,10 @@ type ConanDependenciesResp struct {
 
 type ConanFetcher struct {
 	*core.BaseAsyncCronFetcher
-	workers  *pool.WorkPool
-	workers2 *pool.WorkPool
 }
 
 func NewConanFetcher() *ConanFetcher {
 	fetcher := &ConanFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}}
-	fetcher.workers = pool.New(128)
-	fetcher.workers2 = pool.New(128)
 	return fetcher
 }
 
@@ -107,7 +103,7 @@ func (c *ConanFetcher) Fetch() ([]*core.LibInfo, error) {
 			continue
 		}
 		wg.Add(1)
-		c.workers.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
 				defer wg.Done()
 				index := i.(int)
@@ -224,7 +220,7 @@ func (c *ConanFetcher) libInfoDetails(preInfo *ConanPackage) []*core.LibInfo {
 		}
 		libs[i] = &core.LibInfo{}
 		wg.Add(1)
-		c.workers2.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(index interface{}) error {
 				defer wg.Done()
 				idx := index.(int)

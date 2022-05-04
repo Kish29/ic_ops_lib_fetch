@@ -26,7 +26,6 @@ type HunterPackage struct {
 
 type HunterFetcher struct {
 	*core.BaseAsyncCronFetcher
-	workers *pool.WorkPool
 }
 
 func (h *HunterFetcher) Fetch() ([]*core.LibInfo, error) {
@@ -84,7 +83,7 @@ func (h *HunterFetcher) Name() string {
 }
 
 func NewHunterFetcher() *HunterFetcher {
-	return &HunterFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}, workers: pool.New(128)}
+	return &HunterFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}}
 }
 
 func (h *HunterFetcher) FetchAllPackages(url string) []*HunterPackage {
@@ -104,7 +103,7 @@ func (h *HunterFetcher) FetchAllPackages(url string) []*HunterPackage {
 		}
 		// 获取git page或者其他网站
 		wg.Add(1)
-		h.workers.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(idx interface{}) error {
 				defer wg.Done()
 

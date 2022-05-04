@@ -19,8 +19,6 @@ const tableName = `t_bs_lib_info`
 type BaseDatabaseUpdater struct {
 	integrator integrate.Integrator
 	dbConn     *gorm.DB
-	insertPool *pool.WorkPool
-	updatePool *pool.WorkPool
 }
 
 func (d *BaseDatabaseUpdater) MustTableExit() {
@@ -37,7 +35,7 @@ func NewBaseDatabaseUpdater(integrator integrate.Integrator, dbConn *gorm.DB) *B
 	if integrator == nil || dbConn == nil {
 		panic("integrator or dbConn is nil")
 	}
-	return &BaseDatabaseUpdater{integrator: integrator, dbConn: dbConn, insertPool: pool.New(128), updatePool: pool.New(128)}
+	return &BaseDatabaseUpdater{integrator: integrator, dbConn: dbConn}
 }
 
 func (d *BaseDatabaseUpdater) UpdateIntoDB() {
@@ -81,7 +79,7 @@ func (d *BaseDatabaseUpdater) UpdateIntoDB() {
 			continue
 		}
 		wg.Add(1)
-		d.insertPool.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
 				insert := i.(*TBsLibInfo)
 				create := d.dbConn.Model(&TBsLibInfo{}).Create(insert)
@@ -98,7 +96,7 @@ func (d *BaseDatabaseUpdater) UpdateIntoDB() {
 			continue
 		}
 		wg.Add(1)
-		d.updatePool.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
 				defer wg.Done()
 

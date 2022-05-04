@@ -32,7 +32,6 @@ type CppanPackage struct {
 
 type CppanFetcher struct {
 	*core.BaseAsyncCronFetcher
-	workers *pool.WorkPool
 }
 
 func (c *CppanFetcher) Fetch() ([]*core.LibInfo, error) {
@@ -60,7 +59,7 @@ func (c *CppanFetcher) Name() string {
 }
 
 func NewCppanFetcher() *CppanFetcher {
-	return &CppanFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}, workers: pool.New(256)}
+	return &CppanFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}}
 }
 
 func (c *CppanFetcher) FetchAll(url string) []*CppanPackage {
@@ -89,7 +88,7 @@ func (c *CppanFetcher) FetchAll(url string) []*CppanPackage {
 	lock := sync.RWMutex{}
 	for i := 1; i <= pageNum; i++ {
 		wg.Add(1)
-		c.workers.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
 				defer wg.Done()
 
@@ -128,7 +127,7 @@ func (c *CppanFetcher) ParseDetailEntry(urls []string) []*CppanPackage {
 	packages := make([]*CppanPackage, 0, len(urls))
 	for _, url := range urls {
 		wg.Add(1)
-		c.workers.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
 				defer wg.Done()
 

@@ -26,7 +26,6 @@ type SpackPackage struct {
 
 type SpackFetcher struct {
 	*core.BaseAsyncCronFetcher
-	workers *pool.WorkPool
 }
 
 var gitRegexp = regexp.MustCompile(`^https://github.com.*`)
@@ -40,7 +39,7 @@ func (s *SpackFetcher) Fetch() ([]*core.LibInfo, error) {
 	for _, spackPackage := range packages {
 		if gitRegexp.MatchString(spackPackage.Homepage) { // 如果是github项目
 			wg.Add(1)
-			s.workers.Do(&pool.TaskHandler{
+			core.GlobalPool.Do(&pool.TaskHandler{
 				Fn: func(i interface{}) error {
 					defer wg.Done()
 
@@ -110,7 +109,7 @@ func (s *SpackFetcher) Name() string {
 }
 
 func NewSpackFetcher() *SpackFetcher {
-	return &SpackFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}, workers: pool.New(2048)}
+	return &SpackFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}}
 }
 
 func (s *SpackFetcher) FetchAllPackages() []*SpackPackage {

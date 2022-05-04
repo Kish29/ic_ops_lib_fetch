@@ -23,11 +23,10 @@ const (
 
 type QPMFetcher struct {
 	*core.BaseAsyncCronFetcher
-	workers *pool.WorkPool
 }
 
 func NewQPMFetcher() *QPMFetcher {
-	return &QPMFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}, workers: pool.New(128)}
+	return &QPMFetcher{BaseAsyncCronFetcher: &core.BaseAsyncCronFetcher{}}
 }
 
 func (Q *QPMFetcher) Fetch() ([]*core.LibInfo, error) {
@@ -120,7 +119,7 @@ func (Q *QPMFetcher) ParseQPMDetail(qpmPackages []*QPMPackage) {
 			continue
 		}
 		wg.Add(1)
-		Q.workers.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
 				defer wg.Done()
 
