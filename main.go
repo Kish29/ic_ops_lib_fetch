@@ -7,6 +7,7 @@ import (
 	"github.com/Kish29/ic_ops_lib_fetch/db"
 	"github.com/Kish29/ic_ops_lib_fetch/download"
 	"github.com/Kish29/ic_ops_lib_fetch/integrate"
+	"github.com/gookit/goutil/fsutil"
 	"log"
 	"os"
 	"os/signal"
@@ -63,6 +64,16 @@ func main() {
 		log.Println("Updater startup success")
 	}
 	if flagDownloadSourceCode || flagOnlyDownloadSoource {
+		if !fsutil.DirExist(download.SourceCodeDir) {
+			err := os.Mkdir(download.SourceCodeDir, os.ModePerm)
+			if err != nil {
+				panic(err)
+			}
+		}
+		err := os.Chdir(download.SourceCodeDir)
+		if err != nil {
+			panic(err)
+		}
 		downloader := download.NewDBDownloader(dbConn)
 		downloader.AddWget(download.NewGithubWget())
 		downloader.AddWget(download.NewTarGZWget())

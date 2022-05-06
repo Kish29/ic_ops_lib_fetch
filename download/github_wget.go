@@ -6,7 +6,9 @@ import (
 	"github.com/Kish29/ic_ops_lib_fetch/pool"
 	"github.com/Kish29/ic_ops_lib_fetch/util"
 	"github.com/go-resty/resty/v2"
+	"github.com/gookit/goutil/fsutil"
 	"log"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -53,6 +55,10 @@ func (g *GithubWget) Get() error {
 			return nil
 		}
 		tags := g.getAllTags(owner, repo)
+		// 创建文件夹
+		if !fsutil.DirExist(repo) {
+			_ = os.Mkdir(repo, os.ModePerm)
+		}
 		for _, tag := range tags {
 			if strings.TrimSpace(tag) == "" {
 				continue
@@ -73,8 +79,7 @@ func (g *GithubWget) Get() error {
 					if !ok || zipInfo == nil {
 						return nil
 					}
-					wgetCmd := fmt.Sprintf("%s -P %s", fmt.Sprintf(apiRepoZip, zipInfo.Owner, zipInfo.Repo, zipInfo.Tag), repo)
-					err := exec.Command("wget", wgetCmd).Run()
+					err := exec.Command("wget", fmt.Sprintf(apiRepoZip, zipInfo.Owner, zipInfo.Repo, zipInfo.Tag), fmt.Sprintf("-P %s", repo)).Run()
 					if err != nil {
 						log.Printf("[error] git wget=>%s::%s error, err=>%v", zipInfo.Repo, zipInfo.Tag, err)
 					} else {

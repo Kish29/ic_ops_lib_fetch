@@ -5,13 +5,15 @@ import (
 	"github.com/Kish29/ic_ops_lib_fetch/core"
 	"github.com/Kish29/ic_ops_lib_fetch/pool"
 	"github.com/Kish29/ic_ops_lib_fetch/util"
+	"github.com/gookit/goutil/fsutil"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 )
 
 const (
-	tarGZDir = "other"
+	tarGZDir = "others(tar-gz)"
 )
 
 var (
@@ -28,15 +30,16 @@ func NewTarGZWget() *TarGZWget {
 }
 
 func (t *TarGZWget) Get() error {
+	if !fsutil.DirExist(tarGZDir) {
+		_ = os.Mkdir(tarGZDir, os.ModePerm)
+	}
 	for _, url := range t.tarUrls {
 		if strings.TrimSpace(url) == "" {
 			continue
 		}
 		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
-				tarGzUrl := i.(string)
-				wgetCmd := fmt.Sprintf("%s -P %s", tarGzUrl, tarGZDir)
-				_ = exec.Command("wget", wgetCmd).Run()
+				_ = exec.Command("wget", i.(string), fmt.Sprintf("-P %s", tarGZDir)).Run()
 				return nil
 			},
 			Param: url,
