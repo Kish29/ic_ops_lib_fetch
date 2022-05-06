@@ -72,7 +72,7 @@ func (d *DBDownloader) AddWget(wget Wget) {
 }
 
 func (d *DBDownloader) CrontabSchedule() string {
-	return "* 10/* * * * ?" // 每隔一个小时
+	return "0 0 */3 * * ?" // 每隔3小时
 }
 
 func (d *DBDownloader) Download() error {
@@ -94,7 +94,9 @@ func (d *DBDownloader) Download() error {
 		}
 	}
 	for _, wget := range d.wgets {
-		_ = wget.Get()
+		go func(w Wget) {
+			_ = w.Get()
+		}(wget)
 	}
 	return nil
 }
