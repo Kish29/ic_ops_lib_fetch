@@ -49,6 +49,18 @@ func NewGithubWget() *GithubWget {
 
 func (g *GithubWget) Get() error {
 	var total int32 = 0
+	go func() {
+		ticker := time.NewTicker(3 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			left := atomic.LoadInt32(&total)
+			if left == 0 {
+				log.Printf("download for git all success")
+			} else {
+				log.Printf("all left=>%v", left)
+			}
+		}
+	}()
 	for _, url := range g.repoUrls {
 		if strings.TrimSpace(url) == "" {
 			continue
@@ -101,18 +113,6 @@ func (g *GithubWget) Get() error {
 			})
 		}
 	}
-	go func() {
-		ticker := time.NewTicker(3 * time.Second)
-		defer ticker.Stop()
-		for range ticker.C {
-			left := atomic.LoadInt32(&total)
-			if left == 0 {
-				log.Printf("download for git all success")
-			} else {
-				log.Printf("all left=>%v", left)
-			}
-		}
-	}()
 	return nil
 }
 
