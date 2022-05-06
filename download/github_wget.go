@@ -6,8 +6,10 @@ import (
 	"github.com/Kish29/ic_ops_lib_fetch/pool"
 	"github.com/Kish29/ic_ops_lib_fetch/util"
 	"github.com/go-resty/resty/v2"
+	"github.com/gookit/goutil/fsutil"
 	"log"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -58,7 +60,7 @@ func (g *GithubWget) Get() error {
 				continue
 			}
 			// 检查该文件是否存在
-			if FileExist(repo, tag+`.zip`) || FileExist(repo, tag+`.tar.gz`) {
+			if fsutil.FileExist(filepath.Join(repo, tag+`.zip`)) || fsutil.FileExist(filepath.Join(repo, tag+`.tar.gz`)) {
 				continue
 			}
 			// 执行下载

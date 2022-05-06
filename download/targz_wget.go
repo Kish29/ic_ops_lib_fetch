@@ -4,7 +4,9 @@ import (
 	"github.com/Kish29/ic_ops_lib_fetch/core"
 	"github.com/Kish29/ic_ops_lib_fetch/pool"
 	"github.com/Kish29/ic_ops_lib_fetch/util"
+	"github.com/gookit/goutil/fsutil"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -33,7 +35,14 @@ func (t *TarGZWget) Get() error {
 		}
 		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
-				_ = exec.Command("wget", i.(string), `-P`, tarGZDir).Run()
+				targzUrl := i.(string)
+				index := strings.LastIndex(targzUrl, `/`)
+				if index != -1 {
+					if fsutil.FileExist(filepath.Join(tarGZDir, targzUrl[index+1:])) {
+						return nil
+					}
+				}
+				_ = exec.Command("wget", targzUrl, `-P`, tarGZDir).Run()
 				return nil
 			},
 			Param: url,
