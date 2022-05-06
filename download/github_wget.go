@@ -55,6 +55,9 @@ func (g *GithubWget) Get() error {
 			return nil
 		}
 		tags := g.getAllTags(owner, repo)
+		if len(tags) > 10 {
+			tags = tags[:10]
+		}
 		for _, tag := range tags {
 			if strings.TrimSpace(tag) == "" {
 				continue
