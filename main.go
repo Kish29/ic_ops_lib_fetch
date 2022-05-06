@@ -76,7 +76,7 @@ func main() {
 		}
 		downloader := download.NewDBDownloader(dbConn)
 		downloader.AddWget(download.NewGithubWget())
-		downloader.AddWget(download.NewTarGZWget())
+		//downloader.AddWget(download.NewTarGZWget())
 		download.StartupCronDownload(downloader)
 	}
 	sigCh := make(chan os.Signal, 1)

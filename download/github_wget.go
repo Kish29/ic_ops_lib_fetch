@@ -52,7 +52,7 @@ func (g *GithubWget) Get() error {
 		}
 		owner, repo := g.parseOwnerRepo(url)
 		if strings.TrimSpace(owner) == "" || strings.TrimSpace(repo) == "" {
-			return nil
+			continue
 		}
 		tags := g.getAllTags(owner, repo)
 		if len(tags) > 10 {
