@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync/atomic"
+	"time"
 )
 
 const (
@@ -46,6 +48,7 @@ func NewGithubWget() *GithubWget {
 }
 
 func (g *GithubWget) Get() error {
+	var total int32 = 0
 	for _, url := range g.repoUrls {
 		if strings.TrimSpace(url) == "" {
 			continue
@@ -80,18 +83,29 @@ func (g *GithubWget) Get() error {
 					if !ok || zipInfo == nil {
 						return nil
 					}
+					atomic.AddInt32(&total, 1)
 					err := exec.Command("wget", fmt.Sprintf(apiRepoZip, zipInfo.Owner, zipInfo.Repo, zipInfo.Tag), `-P`, repo).Run()
 					if err != nil {
 						log.Printf("[error] git wget=>%s::%s error, err=>%v", zipInfo.Repo, zipInfo.Tag, err)
 					} else {
 						log.Printf("git wget=>%s::%s success", zipInfo.Repo, zipInfo.Tag)
 					}
+					atomic.AddInt32(&total, -1)
 					return nil
 				},
 				Param: &GitZipInfo{Owner: owner, Repo: repo, Tag: tag},
 			})
 		}
 	}
+	go func() {
+		ticker := time.NewTicker(3 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			if atomic.LoadInt32(&total) == 0 {
+				log.Printf("download for git all success")
+			}
+		}
+	}()
 	return nil
 }
 
