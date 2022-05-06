@@ -70,48 +70,58 @@ func (g *GithubWget) Get() error {
 			continue
 		}
 		tags := g.getAllTags(owner, repo)
-		for _, tag := range tags {
-			if strings.TrimSpace(tag) == "" {
-				continue
-			}
-			// 检查该文件是否存在
-			cf1 := filepath.Join(repo, tag+`.tar.gz`)
-			if fsutil.FileExist(cf1) && CheckZipIntegrity(cf1) {
-				log.Printf("component=>%v exists! skip...", repo+"-"+tag+`.tar.gz`)
-				continue
-			}
-			_ = fsutil.Remove(cf1)
-			cf2 := filepath.Join(repo, tag+`.zip`)
-			if fsutil.FileExist(cf2) && CheckZipIntegrity(cf2) {
-				log.Printf("component=>%v exists! skip...", repo+"-"+tag+`.zip`)
-				continue
-			}
-			_ = fsutil.Remove(cf2)
-			// 执行下载
-			type GitZipInfo struct {
-				Owner string
-				Repo  string
-				Tag   string
-			}
-			core.GlobalPool.Do(&pool.TaskHandler{
-				Fn: func(i interface{}) error {
-					zipInfo, ok := i.(*GitZipInfo)
-					if !ok || zipInfo == nil {
-						return nil
-					}
-					atomic.AddInt32(&total, 1)
-					err := exec.Command("wget", fmt.Sprintf(apiRepoZip, zipInfo.Owner, zipInfo.Repo, zipInfo.Tag), `-P`, repo).Run()
-					if err != nil {
-						log.Printf("[error] git wget=>%s::%s error, err=>%v", zipInfo.Repo, zipInfo.Tag, err)
-					} else {
-						log.Printf("git wget=>%s::%s success", zipInfo.Repo, zipInfo.Tag)
-					}
-					atomic.AddInt32(&total, -1)
-					return nil
-				},
-				Param: &GitZipInfo{Owner: owner, Repo: repo, Tag: tag},
-			})
+		if len(tags) <= 0 {
+			continue
 		}
+		core.GlobalPool2.Do(&pool.TaskHandler{
+			Fn: func(i interface{}) error {
+				tagsGit := i.([]string)
+				for _, tag := range tagsGit {
+					if strings.TrimSpace(tag) == "" {
+						continue
+					}
+					// 检查该文件是否存在
+					cf1 := filepath.Join(repo, tag+`.tar.gz`)
+					if fsutil.FileExist(cf1) && CheckZipIntegrity(cf1) {
+						log.Printf("component=>%v exists! skip...", repo+"-"+tag+`.tar.gz`)
+						continue
+					}
+					_ = fsutil.Remove(cf1)
+					cf2 := filepath.Join(repo, tag+`.zip`)
+					if fsutil.FileExist(cf2) && CheckZipIntegrity(cf2) {
+						log.Printf("component=>%v exists! skip...", repo+"-"+tag+`.zip`)
+						continue
+					}
+					_ = fsutil.Remove(cf2)
+					// 执行下载
+					type GitZipInfo struct {
+						Owner string
+						Repo  string
+						Tag   string
+					}
+					core.GlobalPool.Do(&pool.TaskHandler{
+						Fn: func(i interface{}) error {
+							zipInfo, ok := i.(*GitZipInfo)
+							if !ok || zipInfo == nil {
+								return nil
+							}
+							atomic.AddInt32(&total, 1)
+							err := exec.Command("wget", fmt.Sprintf(apiRepoZip, zipInfo.Owner, zipInfo.Repo, zipInfo.Tag), `-P`, repo).Run()
+							if err != nil {
+								log.Printf("[error] git wget=>%s::%s error, err=>%v", zipInfo.Repo, zipInfo.Tag, err)
+							} else {
+								log.Printf("git wget=>%s::%s success", zipInfo.Repo, zipInfo.Tag)
+							}
+							atomic.AddInt32(&total, -1)
+							return nil
+						},
+						Param: &GitZipInfo{Owner: owner, Repo: repo, Tag: tag},
+					})
+				}
+				return nil
+			},
+			Param: tags,
+		})
 	}
 	return nil
 }
