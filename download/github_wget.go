@@ -63,14 +63,18 @@ func (g *GithubWget) Get() error {
 				continue
 			}
 			// 检查该文件是否存在
-			if fsutil.FileExist(filepath.Join(repo, tag+`.tar.gz`)) {
-				log.Printf("component=>%v exists! skip...", tag+`.tar.gz`)
+			cf1 := filepath.Join(repo, tag+`.tar.gz`)
+			if fsutil.FileExist(cf1) && CheckZipIntegrity(cf1) {
+				log.Printf("component=>%v exists! skip...", repo+"-"+tag+`.tar.gz`)
 				continue
 			}
-			if fsutil.FileExist(filepath.Join(repo, tag+`.zip`)) {
-				log.Printf("component=>%v exists! skip...", tag+`.zip`)
+			_ = fsutil.Remove(cf1)
+			cf2 := filepath.Join(repo, tag+`.zip`)
+			if fsutil.FileExist(cf2) && CheckZipIntegrity(cf2) {
+				log.Printf("component=>%v exists! skip...", repo+"-"+tag+`.zip`)
 				continue
 			}
+			_ = fsutil.Remove(cf2)
 			// 执行下载
 			type GitZipInfo struct {
 				Owner string

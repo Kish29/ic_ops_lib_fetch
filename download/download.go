@@ -7,6 +7,7 @@ import (
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -24,7 +25,12 @@ type Wget interface {
 	CanGetAndPut(url string) bool // 是否可对该url进行下载
 }
 
-// 检查当前目录下是否有该文件
+func CheckZipIntegrity(filename string) bool {
+	err := exec.Command("zip", `-T`, filename).Run()
+	return err == nil
+}
+
+// FileExist 检查当前目录下是否有该文件
 func FileExist(dir, filename string) bool {
 	p := filepath.Join(dir, filename)
 	var exist = true
