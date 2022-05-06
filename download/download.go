@@ -78,7 +78,7 @@ func (d *DBDownloader) AddWget(wget Wget) {
 }
 
 func (d *DBDownloader) CrontabSchedule() string {
-	return "0 0 */3 * * ?" // 每隔3小时
+	return "0 0 */12 * * ?" // 每隔12小时
 }
 
 func (d *DBDownloader) Download() error {
