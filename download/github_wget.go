@@ -105,8 +105,11 @@ func (g *GithubWget) Get() error {
 		ticker := time.NewTicker(3 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
-			if atomic.LoadInt32(&total) == 0 {
+			left := atomic.LoadInt32(&total)
+			if left == 0 {
 				log.Printf("download for git all success")
+			} else {
+				log.Printf("all left=>%v", left)
 			}
 		}
 	}()
