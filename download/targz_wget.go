@@ -5,6 +5,7 @@ import (
 	"github.com/Kish29/ic_ops_lib_fetch/pool"
 	"github.com/Kish29/ic_ops_lib_fetch/util"
 	"github.com/gookit/goutil/fsutil"
+	"log"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -38,11 +39,18 @@ func (t *TarGZWget) Get() error {
 				targzUrl := i.(string)
 				index := strings.LastIndex(targzUrl, `/`)
 				if index != -1 {
-					if fsutil.FileExist(filepath.Join(tarGZDir, targzUrl[index+1:])) {
+					component := targzUrl[index+1:]
+					if fsutil.FileExist(filepath.Join(tarGZDir, component)) {
+						log.Printf("component=>%v exist! skip...", component)
 						return nil
 					}
 				}
-				_ = exec.Command("wget", targzUrl, `-P`, tarGZDir).Run()
+				err := exec.Command("wget", targzUrl, `-P`, tarGZDir).Run()
+				if err != nil {
+					log.Printf("[error] targz download=>%v error, err=>%v", targzUrl, err)
+				} else {
+					log.Printf("targz download=>%v success", targzUrl)
+				}
 				return nil
 			},
 			Param: url,

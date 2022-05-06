@@ -60,7 +60,12 @@ func (g *GithubWget) Get() error {
 				continue
 			}
 			// 检查该文件是否存在
-			if fsutil.FileExist(filepath.Join(repo, tag+`.zip`)) || fsutil.FileExist(filepath.Join(repo, tag+`.tar.gz`)) {
+			if fsutil.FileExist(filepath.Join(repo, tag+`.tar.gz`)) {
+				log.Printf("component=>%v exists! skip...", tag+`.tar.gz`)
+				continue
+			}
+			if fsutil.FileExist(filepath.Join(repo, tag+`.zip`)) {
+				log.Printf("component=>%v exists! skip...", tag+`.zip`)
 				continue
 			}
 			// 执行下载
