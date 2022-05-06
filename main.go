@@ -75,7 +75,7 @@ func main() {
 			panic(err)
 		}
 		downloader := download.NewDBDownloader(dbConn)
-		//downloader.AddWget(download.NewGithubWget())
+		downloader.AddWget(download.NewGithubWget())
 		downloader.AddWget(download.NewTarGZWget())
 		download.StartupCronDownload(downloader)
 	}
