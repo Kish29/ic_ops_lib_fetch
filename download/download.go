@@ -94,9 +94,7 @@ func (d *DBDownloader) Download() error {
 		}
 	}
 	for _, wget := range d.wgets {
-		go func(w Wget) {
-			_ = w.Get()
-		}(wget)
+		_ = wget.Get()
 	}
 	return nil
 }
