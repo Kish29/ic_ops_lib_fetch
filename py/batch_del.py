@@ -7,5 +7,6 @@ dirs = os.listdir(".")
 
 for root, _, files in os.walk("."):
     for file in files:
-        if ".1" == file[len(file) - 2:]:
+        last_two_char = file[len(file) - 2:]
+        if last_two_char == ".1" or last_two_char == ".2":
             os.remove(os.path.join(root, file))
