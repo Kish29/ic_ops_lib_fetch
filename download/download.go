@@ -64,6 +64,24 @@ func IsFile(filename string) bool {
 	return !IsDir(filename)
 }
 
+func DirEmpty(dirname string) bool {
+	dir, _ := os.ReadDir(dirname)
+	return len(dir) <= 0
+}
+
+func DirIntegrity(dirname string) bool {
+	dir, err := os.ReadDir(dirname)
+	if err != nil {
+		return false
+	}
+	for _, entry := range dir {
+		if CheckZipIntegrity(entry.Name()) {
+			return true
+		}
+	}
+	return false
+}
+
 type DBDownloader struct {
 	wgets []Wget
 	conn  *gorm.DB

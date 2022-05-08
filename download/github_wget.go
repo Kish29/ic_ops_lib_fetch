@@ -80,17 +80,21 @@ func (g *GithubWget) Get() error {
 					if strings.TrimSpace(tag) == "" {
 						continue
 					}
+					// 检查该文件夹下是否已经存在下好的源代码包
+					if fsutil.DirExist(repo) && !DirEmpty(repo) && DirIntegrity(repo) {
+						break
+					}
 					// 检查该文件是否存在
 					cf1 := filepath.Join(repo, tag+`.tar.gz`)
 					if fsutil.FileExist(cf1) && CheckZipIntegrity(cf1) {
 						log.Printf("component=>%v exists! skip...", repo+"-"+tag+`.tar.gz`)
-						continue
+						break
 					}
 					_ = fsutil.Remove(cf1)
 					cf2 := filepath.Join(repo, tag+`.zip`)
 					if fsutil.FileExist(cf2) && CheckZipIntegrity(cf2) {
 						log.Printf("component=>%v exists! skip...", repo+"-"+tag+`.zip`)
-						continue
+						break
 					}
 					_ = fsutil.Remove(cf2)
 					// 执行下载
@@ -117,6 +121,7 @@ func (g *GithubWget) Get() error {
 						},
 						Param: &GitZipInfo{Owner: owner, Repo: repo, Tag: tag},
 					})
+					break // 只下载一个, :)
 				}
 				return nil
 			},
