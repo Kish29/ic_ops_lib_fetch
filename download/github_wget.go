@@ -73,7 +73,7 @@ func (g *GithubWget) Get() error {
 		if len(tags) <= 0 {
 			continue
 		}
-		core.GlobalPool2.Do(&pool.TaskHandler{
+		core.GlobalPool.Do(&pool.TaskHandler{
 			Fn: func(i interface{}) error {
 				tagsGit := i.([]string)
 				for _, tag := range tagsGit {
@@ -82,6 +82,7 @@ func (g *GithubWget) Get() error {
 					}
 					// 检查该文件夹下是否已经存在下好的源代码包
 					if fsutil.DirExist(repo) && !DirEmpty(repo) && DirIntegrity(repo) {
+						log.Printf("component=>%v exists! skip...", repo)
 						break
 					}
 					// 检查该文件是否存在
