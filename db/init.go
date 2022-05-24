@@ -18,8 +18,10 @@ const (
 	defaultMysqlPort uint16 = 3306
 )
 
+var DB *gorm.DB
+
 // InitConn 初始化数据库的链接
-func InitConn(username, password, dbname string, addr *string, port *uint16) (godb *gorm.DB) {
+func InitConn(username, password, dbname string, addr *string, port *uint16) *gorm.DB {
 	mysqlAddr := defaultMysqlAddr
 	mysqlPort := defaultMysqlPort
 	if addr != nil {
@@ -30,14 +32,14 @@ func InitConn(username, password, dbname string, addr *string, port *uint16) (go
 	}
 	dsn := fmt.Sprintf(MysqlCnnPattern, username, password, mysqlAddr, mysqlPort, dbname)
 	var err error
-	godb, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		CreateBatchSize: 1000, // 分批插入时，1k条 column * row 必须< 65536
 		NamingStrategy:  schema.NamingStrategy{SingularTable: true},
 	})
 	if err != nil {
 		panic(err)
 	}
-	d, err := godb.DB()
+	d, err := DB.DB()
 	if err != nil {
 		panic(err)
 	}
@@ -45,7 +47,7 @@ func InitConn(username, password, dbname string, addr *string, port *uint16) (go
 	d.SetMaxOpenConns(200)
 	d.SetMaxIdleConns(200)
 	d.SetConnMaxIdleTime(2 * time.Second)
-	return
+	return DB
 }
 
 func Startup(updater core.DatabaseUpdater) {

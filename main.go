@@ -7,11 +7,10 @@ import (
 	"github.com/Kish29/ic_ops_lib_fetch/db"
 	"github.com/Kish29/ic_ops_lib_fetch/download"
 	"github.com/Kish29/ic_ops_lib_fetch/integrate"
+	"github.com/Kish29/ic_ops_lib_fetch/net"
 	"github.com/gookit/goutil/fsutil"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
 const (
@@ -21,15 +20,17 @@ const (
 )
 
 var (
-	flagVersion             bool
-	flagDownloadSourceCode  bool
-	flagOnlyDownloadSoource bool
+	flagVersion            bool
+	flagDownloadSourceCode bool
+	flagOnlyDownloadSource bool
+	flagOnlyServer         bool
 )
 
 func init() {
 	flag.BoolVar(&flagVersion, "v", false, "show scrap version")
 	flag.BoolVar(&flagDownloadSourceCode, "d", false, "whether download source code when fetch done")
-	flag.BoolVar(&flagOnlyDownloadSoource, "od", false, "only download source codes from database")
+	flag.BoolVar(&flagOnlyDownloadSource, "od", false, "only download source codes from database")
+	flag.BoolVar(&flagOnlyServer, "os", false, "only startup http server")
 	flag.Parse()
 }
 
@@ -38,7 +39,13 @@ func main() {
 	dbConn := db.InitConn(mysqlUsername, mysqlPassword, mysqlDatabase, nil, nil)
 	log.Println("Database init connection success")
 
-	if !flagOnlyDownloadSoource {
+	if flagOnlyServer {
+		// 启动http服务
+		net.StartupServiceHTTPService()
+		return
+	}
+
+	if !flagOnlyDownloadSource {
 		// 注册所有的holder-fetcher
 		integrator := integrate.NewLibIntegrator()
 		// conan
@@ -63,7 +70,7 @@ func main() {
 		db.Startup(updater)
 		log.Println("Updater startup success")
 	}
-	if flagDownloadSourceCode || flagOnlyDownloadSoource {
+	if flagDownloadSourceCode || flagOnlyDownloadSource {
 		if !fsutil.DirExist(download.SourceCodeDir) {
 			err := os.Mkdir(download.SourceCodeDir, os.ModePerm)
 			if err != nil {
@@ -79,7 +86,8 @@ func main() {
 		//downloader.AddWget(download.NewTarGZWget())
 		download.StartupCronDownload(downloader)
 	}
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-	<-sigCh
+	net.StartupServiceHTTPService()
+	//sigCh := make(chan os.Signal, 1)
+	//signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	//<-sigCh
 }
